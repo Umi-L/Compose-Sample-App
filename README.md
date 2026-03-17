@@ -129,3 +129,114 @@ This project uses a custom theme defined in the [Theme.kt](composeApp/src/common
 The theme wraps the whole project and is applied in the entrypoint [App.kt](composeApp/src/commonMain/kotlin/com/julianogrady/sample/core/App.kt) file. You can customize the theme by editing the colors, typography, and shapes defined in the [Theme.kt](composeApp/src/commonMain/kotlin/com/julianogrady/sample/core/theming/Theme.kt) file.
 
 ### Pages
+
+This project organizes pages by feature. A typical feature folder structure looks like this:
+
+```
+featureName/
+    data/           // Repositories, Data Sources
+    domain/         // Models, Use Cases, Repository Interfaces
+    presentation/   // UI Components, ViewModels, States, Actions
+```
+
+### Adding a New Page
+
+To add a new page (e.g., `ProfilePage`), follow these steps:
+
+1.  **Create the Directory Structure**
+    Create a new package under `com.julianogrady.sample` (e.g., `profile`). Inside, create `presentation/profilePage`.
+
+2.  **Define the UI State**
+    Create a `ProfilePageState.kt` data class to hold the screen's state.
+    ```kotlin
+    data class ProfilePageState(
+        val isLoading: Boolean = false,
+        val username: String = ""
+    )
+    ```
+
+3.  **Define Actions**
+    Create a `ProfilePageAction.kt` sealed interface for user interactions.
+    ```kotlin
+    sealed interface ProfilePageAction {
+        data class OnUpdateUsername(val newName: String) : ProfilePageAction
+        data object OnSave : ProfilePageAction
+    }
+    ```
+
+4.  **Create the ViewModel**
+    Create specific `ProfilePageViewModel.kt` extending `ViewModel`.
+    ```kotlin
+    class ProfilePageViewModel(
+        private val repository: UserRepository // Example dependency
+    ) : ViewModel() {
+        private val _state = MutableStateFlow(ProfilePageState())
+        val state = _state.asStateFlow()
+
+        fun onAction(action: ProfilePageAction) {
+            when(action) {
+                is ProfilePageAction.OnUpdateUsername -> {
+                    _state.update { it.copy(username = action.newName) }
+                }
+                ProfilePageAction.OnSave -> {
+                    // Perform save operation
+                }
+            }
+        }
+    }
+    ```
+
+5.  **Create the Screen Composable**
+    Create `ProfilePageScreen.kt`. Use the "Root" pattern to separate Koin injection from the UI.
+    ```kotlin
+    @Composable
+    fun ProfilePageScreenRoot(
+        viewModel: ProfilePageViewModel = koinViewModel(),
+        onNavigateBack: () -> Unit
+    ) {
+        val state by viewModel.state.collectAsStateWithLifecycle()
+        ProfilePageScreen(
+            state = state,
+            onAction = viewModel::onAction,
+            onNavigateBack = onNavigateBack
+        )
+    }
+
+    @Composable
+    private fun ProfilePageScreen(
+        state: ProfilePageState,
+        onAction: (ProfilePageAction) -> Unit,
+        onNavigateBack: () -> Unit
+    ) {
+        // Your UI code here
+    }
+    ```
+
+6.  **Define the Route**
+    In `App.kt` (or a dedicated routes file), define a standard Serializable object (or data class for arguments).
+    ```kotlin
+    @Serializable
+    object Profile
+    ```
+
+7.  **Register the Route**
+    In `App.kt`, add the route to the `NavHost`.
+    ```kotlin
+    NavHost(navController = navController, startDestination = Home) {
+        // ... existing routes
+        composable<Profile> {
+            ProfilePageScreenRoot(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+    }
+    ```
+
+8.  **Register ViewModel in Koin**
+    In `di/Modules.kt`, add the ViewModel to the `sharedModule`.
+    ```kotlin
+    val sharedModule = module {
+        // ...
+        viewModelOf(::ProfilePageViewModel)
+    }
+    ```
