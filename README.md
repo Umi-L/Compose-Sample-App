@@ -119,6 +119,7 @@ The `platformModule` is expected to be defined in the platform specific source s
 ### Database
 This project uses SQLDelight for database management. The database is defined in the [AppDatabase.sq](composeApp/src/commonMain/sqldelight/com/julianogrady/sample/AppDatabase.sq) file.
 This is initialized as done in the DI module files as mentioned in the section above.
+Database queries are called cross-platform using providers as done in the [SettingsRepository.kt](composeApp/src/commonMain/kotlin/com/julianogrady/sample/core/domain/repository/SettingsRepository.kt) interface which is implemented using SQLDelight in [SQLDelightSettingsRepository.kt](composeApp/src/commonMain/kotlin/com/julianogrady/sample/core/data/repository/SQLDelightSettingsRepository.kt).
 
 ### Routing
 This project uses standard androidx navigation for routing. Pages are defined using serializable data classes in the entrypoint [App.kt](composeApp/src/commonMain/kotlin/com/julianogrady/sample/core/App.kt) file.
@@ -127,4 +128,4 @@ This project uses standard androidx navigation for routing. Pages are defined us
 This project uses a custom theme defined in the [Theme.kt](composeApp/src/commonMain/kotlin/com/julianogrady/sample/core/theming/Theme.kt) file.
 The theme wraps the whole project and is applied in the entrypoint [App.kt](composeApp/src/commonMain/kotlin/com/julianogrady/sample/core/App.kt) file. You can customize the theme by editing the colors, typography, and shapes defined in the [Theme.kt](composeApp/src/commonMain/kotlin/com/julianogrady/sample/core/theming/Theme.kt) file.
 
-### Domain Layer
+### Pages

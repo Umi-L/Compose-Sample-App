@@ -24,6 +24,8 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.time.ExperimentalTime
 
+// public page wrapper that is used for routing
+// is separated like this to avoid passing view model for previews and to keep the screen composable focused on ui
 @Composable
 fun HomePageScreenRoot(
     viewModel: HomePageViewModel = koinViewModel(),
@@ -40,18 +42,8 @@ fun HomePageScreenRoot(
     )
 }
 
-//@Composable
-//@Preview
-//private fun HomePageScreenPreview(
-//    @PreviewParameter(HomePageStatePreviewProvider::class) state: HomePageState
-//) {
-//    HomePageScreen(
-//        state = state,
-//        onAction = {},
-//    )
-//}
-
-@OptIn(ExperimentalTime::class)
+// Preview for the screen, there can be multiple of these, and we can pass in arbitrary data.
+// Helpful to 'test' ui independently.
 @Composable
 @Preview
 private fun HomePageScreenPreview() {
@@ -64,7 +56,8 @@ private fun HomePageScreenPreview() {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class)
+// Main page composable, should be focused on just ui. All state is passed in, and all events are passed out.
+@OptIn(ExperimentalMaterial3Api::class)
 @Suppress("UNUSED_PARAMETER")
 @Composable
 private fun HomePageScreen(
