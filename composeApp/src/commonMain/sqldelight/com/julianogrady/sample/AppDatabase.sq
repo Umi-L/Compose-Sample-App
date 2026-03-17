@@ -1,0 +1,27 @@
+import com.julianogrady.sample.core.domain.model.ThemeOption;
+
+-- This file defines the SQL schema and queries for the app's database using SQLDelight.
+
+-- Settings table singleton pattern to store app-wide settings. Only one row will exist with id = 1.
+CREATE TABLE Settings (
+    id INTEGER NOT NULL PRIMARY KEY CHECK (id = 1),
+    initial_setup_ran INTEGER NOT NULL DEFAULT 0,
+    counter INTEGER NOT NULL DEFAULT 0,
+    theme TEXT AS ThemeOption NOT NULL DEFAULT "SYSTEM"
+);
+
+-- queries for the Settings table
+
+initializeSettingsOrIgnore:
+INSERT OR IGNORE INTO Settings (id) VALUES (1);
+
+insertOrUpdateSettings:
+INSERT OR REPLACE INTO Settings (id, initial_setup_ran, counter, theme)
+VALUES (1, ?, ?, ?);
+
+getSettings:
+SELECT * FROM Settings
+WHERE id = 1;
+
+
+-- Additional queries & tables can be defined here as needed.
