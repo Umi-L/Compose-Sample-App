@@ -1,7 +1,7 @@
 package com.julianogrady.sample.core.data.repository
 
-import com.julianogrady.sample.core.domain.model.PaymentPeriod
 import com.julianogrady.sample.core.domain.model.Settings
+import com.julianogrady.sample.core.domain.model.ThemeOption
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -11,27 +11,21 @@ class SettingsRepositoryTest {
     fun testSettingsModel() {
         // Test default settings
         val defaultSettings = Settings()
-        assertEquals(PaymentPeriod.MONTHLY, defaultSettings.paymentPeriod)
-        
+        assertEquals(ThemeOption.SYSTEM, defaultSettings.theme)
+        assertEquals(0L, defaultSettings.counter)
+
         // Test custom settings
-        val customSettings = Settings(paymentPeriod = PaymentPeriod.WEEKLY)
-        assertEquals(PaymentPeriod.WEEKLY, customSettings.paymentPeriod)
+        val customSettings = Settings(theme = ThemeOption.DARK, counter = 5)
+        assertEquals(ThemeOption.DARK, customSettings.theme)
+        assertEquals(5L, customSettings.counter)
     }
-    
+
     @Test
-    fun testPaymentPeriodEnum() {
-        // Test all payment period values
-        assertEquals(4, PaymentPeriod.entries.size)
-        
-        val periods = listOf(
-            PaymentPeriod.WEEKLY,
-            PaymentPeriod.BIWEEKLY,
-            PaymentPeriod.MONTHLY,
-            PaymentPeriod.YEARLY
-        )
-        
-        periods.forEach { period ->
-            assertEquals(period, PaymentPeriod.valueOf(period.name))
+    fun testThemeOptionEnum() {
+        assertEquals(3, ThemeOption.entries.size)
+
+        ThemeOption.entries.forEach { option ->
+            assertEquals(option, ThemeOption.valueOf(option.name))
         }
     }
 }

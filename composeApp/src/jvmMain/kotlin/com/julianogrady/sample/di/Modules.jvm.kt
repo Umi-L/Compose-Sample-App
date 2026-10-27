@@ -3,6 +3,9 @@ package com.julianogrady.sample.di
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.julianogrady.sample.AppDatabase
+import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.engine.okhttp.OkHttp
+import org.koin.core.module.Module
 import org.koin.dsl.module
 import java.util.Properties
 
@@ -11,4 +14,6 @@ actual val platformModule: Module
         single<SqlDriver> {
             JdbcSqliteDriver("jdbc:sqlite:sample.db", Properties(), AppDatabase.Schema)
         }
+
+        single<HttpClientEngine> { OkHttp.create() }
     }

@@ -45,6 +45,28 @@ in your IDE’s toolbar or run it directly from the terminal:
 To build and run the development version of the iOS app, use the run configuration from the run widget
 in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and run it from there.
 
+## Configuration
+
+Debug builds (Android, iOS, and Desktop all share this) read their API base URL from `local.properties` at the
+repo root — the same gitignored, per-developer file Gradle already uses for `sdk.dir` — instead of it being
+hardcoded in source, so each developer can point the app at their own backend without editing tracked code.
+
+To override it, edit `local.properties` and set:
+```properties
+debug.baseUrl=https://jsonplaceholder.typicode.com
+```
+If `debug.baseUrl` isn't set, debug builds default to `https://jsonplaceholder.typicode.com`, so the sample works
+out of the box. When pointing at a local backend, use `http://localhost:8080` for Desktop or an Android emulator that
+maps `localhost` back to the host, or your machine's LAN IP (e.g. `http://192.168.0.182:8080`) for a physical device
+or an iOS simulator.
+
+The value is exposed to shared code through [BuildKonfig](https://github.com/yshrsmz/BuildKonfig) as
+`BuildKonfig.DEBUG_BASE_URL`. Release builds always use the release URL in
+[ApiConfig.kt](composeApp/src/commonMain/kotlin/com/julianogrady/sample/core/data/remote/ApiConfig.kt).
+
+`local.properties` is gitignored and must never be committed; `local.properties.example` is the tracked
+template new contributors copy from.
+
 ---
 
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
@@ -120,6 +142,27 @@ The `platformModule` is expected to be defined in the platform specific source s
 This project uses SQLDelight for database management. The database is defined in the [AppDatabase.sq](composeApp/src/commonMain/sqldelight/com/julianogrady/sample/AppDatabase.sq) file.
 This is initialized as done in the DI module files as mentioned in the section above.
 Database queries are called cross-platform using providers as done in the [SettingsRepository.kt](composeApp/src/commonMain/kotlin/com/julianogrady/sample/core/domain/repository/SettingsRepository.kt) interface which is implemented using SQLDelight in [SQLDelightSettingsRepository.kt](composeApp/src/commonMain/kotlin/com/julianogrady/sample/core/data/repository/SQLDelightSettingsRepository.kt).
+
+### Networking
+This project uses [Ktor](https://ktor.io/docs/client-create-multiplatform-application.html) with kotlinx-serialization for HTTP.
+- A single shared `HttpClient` is defined in [Modules.kt](composeApp/src/commonMain/kotlin/com/julianogrady/sample/di/Modules.kt), configured with JSON content negotiation, request logging (through `AppLogger`), and timeouts.
+- The engine is platform-specific and provided by each `platformModule`: OkHttp on Android and Desktop, Darwin on iOS.
+- The base URL comes from [ApiConfig.kt](composeApp/src/commonMain/kotlin/com/julianogrady/sample/core/data/remote/ApiConfig.kt) (see [Configuration](#configuration)).
+- [ApiException.kt](composeApp/src/commonMain/kotlin/com/julianogrady/sample/core/data/remote/ApiException.kt) provides `bodyOrThrow()` / `ensureSuccess()`, which throw an `ApiException` for non-2xx responses.
+
+The example is [KtorPostRepository.kt](composeApp/src/commonMain/kotlin/com/julianogrady/sample/core/data/repository/KtorPostRepository.kt), which fetches a post from JSONPlaceholder and is shown on the home page.
+
+To add a new API call:
+1. Define a `@Serializable` model in `core/domain/model` (or a request/response DTO in `core/data/remote/dto`).
+2. Add a repository interface in `core/domain/repository`.
+3. Implement it in `core/data/repository` taking `HttpClient` in the constructor, e.g.
+   ```kotlin
+   class KtorUserRepository(private val client: HttpClient) : UserRepository {
+       override suspend fun getUser(id: Int): User =
+           client.get("${ApiConfig.baseUrl}/users/$id").bodyOrThrow()
+   }
+   ```
+4. Bind it in `sharedModule`: `singleOf(::KtorUserRepository) bind UserRepository::class`.
 
 ### Routing
 This project uses standard androidx navigation for routing. Pages are defined using serializable data classes in the entrypoint [App.kt](composeApp/src/commonMain/kotlin/com/julianogrady/sample/core/App.kt) file.

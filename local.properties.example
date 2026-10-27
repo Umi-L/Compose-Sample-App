@@ -1,0 +1,3 @@
+# Copy to local.properties (gitignored) and edit per machine.
+# Base URL used by debug builds; see README.md "Configuration".
+debug.baseUrl=https://jsonplaceholder.typicode.com

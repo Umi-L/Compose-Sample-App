@@ -2,6 +2,7 @@ package com.julianogrady.sample.home.presentation.homePage
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.julianogrady.sample.core.domain.repository.PostRepository
 import com.julianogrady.sample.core.domain.repository.SettingsRepository
 import com.julianogrady.sample.logger.AppLogger
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +14,7 @@ import kotlinx.coroutines.launch
 // and should be the only place that updates the state.
 class HomePageViewModel(
     private val settingsRepository: SettingsRepository,
+    private val postRepository: PostRepository,
 ): ViewModel() {
     // _state is the mutable version of our state and is only accessible in this file
     private val _state = MutableStateFlow(HomePageState())
@@ -25,6 +27,7 @@ class HomePageViewModel(
     // (note, `init` is called directly after the constructor)
     init {
         load()
+        loadPost()
     }
 
     // onAction is the only handler passed from the viewModel to the composable,
@@ -50,6 +53,7 @@ class HomePageViewModel(
 
                 updateSettingsCounter(0L)
             }
+            HomePageAction.OnLoadPost -> loadPost()
         }
     }
 
@@ -68,6 +72,17 @@ class HomePageViewModel(
                 )
             }
         }
+    }
+
+    // example network call - fetches a single post over HTTP via the Ktor-backed repository
+    private fun loadPost() = viewModelScope.launch {
+        _state.update { it.copy(postError = null) }
+        runCatching { postRepository.getPost(id = 1) }
+            .onSuccess { post -> _state.update { it.copy(post = post) } }
+            .onFailure { throwable ->
+                AppLogger.error(tag = "HomePageViewModel", message = "Error loading post", throwable = throwable)
+                _state.update { it.copy(postError = throwable.message ?: "Failed to load post") }
+            }
     }
 
     // the load function is used to asynchronously load from repositories (ie SQLDelight)

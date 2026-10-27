@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.julianogrady.sample.core.domain.model.Post
 import com.julianogrady.sample.core.theming.Theme
 import com.julianogrady.sample.home.presentation.components.Counter
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -50,6 +51,11 @@ private fun HomePageScreenPreview() {
     HomePageScreen(
         state = HomePageState(
             isLoading = false,
+            post = Post(
+                id = 1,
+                title = "Sample post title",
+                body = "This is what a post fetched over the network looks like.",
+            ),
         ),
         onAction = {},
         navigateToSettingsPage = {},
@@ -153,6 +159,40 @@ private fun HomePageScreen(
                     onPlusClick = { onAction(HomePageAction.OnIncrementCounter(1)) },
                     onMinusClick = { onAction(HomePageAction.OnIncrementCounter(-1)) },
                 )
+
+                // example Ktor network call - shows the fetched post, or the error if the request failed
+                Card(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(0.9f),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        when {
+                            state.postError != null -> Text(
+                                text = state.postError,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                            state.post != null -> {
+                                Text(
+                                    text = state.post.title,
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
+                                Text(
+                                    text = state.post.body,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                            }
+                            else -> CircularProgressIndicator()
+                        }
+
+                        Button(onClick = { onAction(HomePageAction.OnLoadPost) }) {
+                            Text("Reload")
+                        }
+                    }
+                }
             }
 
          }

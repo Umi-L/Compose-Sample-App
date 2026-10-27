@@ -8,4 +8,5 @@ package com.julianogrady.sample.home.presentation.homePage
 sealed interface HomePageAction {
     data class OnIncrementCounter(val amount: Int) : HomePageAction
     object OnResetCounter : HomePageAction
+    object OnLoadPost : HomePageAction
 }
